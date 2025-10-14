@@ -12,7 +12,8 @@ type KeyboardCodes = {
 type SettingsState = {
   settings: {
     web: { port: string };
-    hotkeys: {nextHost: [[boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean], number, number, number, number, number, number]}
+    hotkeys: {nextHost: [[boolean, boolean, boolean, boolean, boolean, boolean, boolean, boolean], number, number, number, number, number, number]};
+    touchphat: { [key: string]: string };
   };
   keyboardCodes: KeyboardCodes
 };
@@ -31,6 +32,14 @@ export default class Settings extends React.Component<any, SettingsState> {
         },
         hotkeys: {
           nextHost: [[false, false, false, false, false, false, false, false], 0, 0, 0, 0, 0, 0]
+        },
+        touchphat: {
+          button_0: "switch_next_host",
+          button_1: "switch_next_host",
+          button_2: "switch_next_host",
+          button_3: "switch_next_host",
+          button_4: "switch_next_host",
+          button_5: "switch_next_host",
         },
       },
       keyboardCodes: {
@@ -121,6 +130,12 @@ export default class Settings extends React.Component<any, SettingsState> {
     this.setState({settings: settings})
   }
 
+  handleTouchPhatChange(event: React.ChangeEvent<HTMLSelectElement>) {
+    const { settings } = this.state;
+    settings.touchphat[event.target.id] = event.target.value;
+    this.setState({ settings: settings });
+  }
+
   handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     this.sendSettings()
     event.preventDefault();
@@ -157,6 +172,44 @@ export default class Settings extends React.Component<any, SettingsState> {
     );
   }
 
+  renderTouchPhatSection() {
+    const touchPhatActions = [
+      { value: "switch_next_host", label: "Switch to Next Host" },
+      // Add other actions here if needed in the future
+    ];
+
+    return (
+      <div className="row g-3 mt-5 align-items-center">
+        <h2 className="fw-light">Touch pHAT Settings</h2>
+        <p>Configure actions for each Touch pHAT button.</p>
+        {[0, 1, 2, 3, 4, 5].map((buttonIndex) => (
+          <React.Fragment key={buttonIndex}>
+            <label
+              htmlFor={`button_${buttonIndex}`}
+              className="col-sm-4 col-form-label"
+            >
+              Button {buttonIndex}:
+            </label>
+            <div className="col-sm-8">
+              <select
+                className="form-select"
+                id={`button_${buttonIndex}`}
+                value={this.state.settings.touchphat[`button_${buttonIndex}`]}
+                onChange={this.handleTouchPhatChange.bind(this)}
+              >
+                {touchPhatActions.map((action) => (
+                  <option key={action.value} value={action.value}>
+                    {action.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </React.Fragment>
+        ))}
+      </div>
+    );
+  }
+
   render() {
     const { keyboardCodes } = this.state;
     return (
@@ -167,6 +220,7 @@ export default class Settings extends React.Component<any, SettingsState> {
           <form onSubmit={this.handleSubmit.bind(this)}>
             {this.renderWebSection()}
             {this.renderHotkeySection(keyboardCodes)}
+            {this.renderTouchPhatSection()}
             <div className="row mt-3">
               <div className="d-grid col-4">
                 <input type="submit" className="btn btn-outline-primary" value="Apply"/>

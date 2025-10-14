@@ -26,6 +26,14 @@ class Settings(object):
                 "nextHost": [[False, False, False, False, False, False, False, False],
                             # 6 pressed keys
                             71, 0, 0, 0, 0, 0] # KEY_SCROLLLOCK 71
+            },
+            "touchphat": {
+                "button_0": "switch_next_host",
+                "button_1": "switch_next_host",
+                "button_2": "switch_next_host",
+                "button_3": "switch_next_host",
+                "button_4": "switch_next_host",
+                "button_5": "switch_next_host"
             }
         }
 
