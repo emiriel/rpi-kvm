@@ -28,12 +28,12 @@ class Settings(object):
                             71, 0, 0, 0, 0, 0] # KEY_SCROLLLOCK 71
             },
             "touchphat": {
-                "button_0": "switch_next_host",
-                "button_1": "switch_next_host",
-                "button_2": "switch_next_host",
-                "button_3": "switch_next_host",
-                "button_4": "switch_next_host",
-                "button_5": "switch_next_host"
+                "Back": "switch_next_host",
+                "A": "switch_next_host",
+                "B": "switch_next_host",
+                "C": "switch_next_host",
+                "D": "switch_next_host",
+                "Enter": "switch_next_host"
             }
         }
 
