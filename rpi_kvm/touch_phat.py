@@ -1,4 +1,8 @@
-import touchphat
+try:
+    import touchphat
+    touchphat_present = True
+except ImportError:
+    touchphat_present = False
 import asyncio
 import dbus_next
 from dbus_next.aio import MessageBus
@@ -12,12 +16,13 @@ class TouchPhatHandler(object):
         self._stop_event = False
         self._button_actions = {} # Will be loaded from settings
 
-        touchphat.on_release(0, self._on_button_0_release)
-        touchphat.on_release(1, self._on_button_1_release)
-        touchphat.on_release(2, self._on_button_2_release)
-        touchphat.on_release(3, self._on_button_3_release)
-        touchphat.on_release(4, self._on_button_4_release)
-        touchphat.on_release(5, self._on_button_5_release)
+        if touchphat_present:
+            touchphat.on_release(0, self._on_button_0_release)
+            touchphat.on_release(1, self._on_button_1_release)
+            touchphat.on_release(2, self._on_button_2_release)
+            touchphat.on_release(3, self._on_button_3_release)
+            touchphat.on_release(4, self._on_button_4_release)
+            touchphat.on_release(5, self._on_button_5_release)
 
     def stop(self):
         self._stop_event = True
@@ -37,6 +42,9 @@ class TouchPhatHandler(object):
                 await asyncio.sleep(5)
 
     async def run(self):
+        if not touchphat_present:
+            logging.info("TouchPhat: Touch pHAT not found, disabling.")
+            return
         logging.info(f"TouchPhat: D-Bus service connecting...")
         await self._connect_to_dbus_service()
         await self._load_settings()
