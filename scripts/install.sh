@@ -60,9 +60,10 @@ sudo cp ./conf/bluetooth.service /lib/systemd/system/bluetooth.service
 sudo sed -i "s|BLUETOOTH_DAEMON_PATH|${bluetoothd_path}|" /lib/systemd/system/bluetooth.service
 
 echo "Copy RPI-KVM service config"
+sed -i'' -e "s|__install_dir__|"`pwd`"|g" ./conf/rpi-kvm.service
+sed -i'' -e "s|__install_dir__|"`pwd`"|g" ./rpi_kvm/web.py
 sudo cp ./conf/rpi-kvm.service /lib/systemd/system/rpi-kvm.service
 echo "Replace legacy pi user with current user if necessary"
-sudo sed -i'' -e "s|/pi/|/${SUDO_USER}/|g" /lib/systemd/system/rpi-kvm.service
 sudo systemctl daemon-reload
 echo "Restart bluetooth service with the new config"
 sudo systemctl restart bluetooth
@@ -72,3 +73,4 @@ echo "Start RPI-KVM service"
 sudo systemctl start rpi-kvm
 echo "--- Configuration Step Done ------"
 echo "### RPI-KVM Install Done #########"
+git reset --hard
