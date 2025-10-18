@@ -43,12 +43,12 @@ export default class Settings extends React.Component<any, SettingsState> {
           nextHost: [[false, false, false, false, false, false, false, false], 0, 0, 0, 0, 0, 0],
         },
         touchphat: {
-          button_0: 'switch_next_host',
-          button_1: 'switch_next_host',
-          button_2: 'switch_next_host',
-          button_3: 'switch_next_host',
-          button_4: 'switch_next_host',
-          button_5: 'switch_next_host',
+          Back: 'switch_next_host',
+          A: 'switch_next_host',
+          B: 'switch_next_host',
+          C: 'switch_next_host',
+          D: 'switch_next_host',
+          Enter: 'switch_next_host',
         },
       },
       keyboardCodes: {
@@ -209,16 +209,16 @@ export default class Settings extends React.Component<any, SettingsState> {
       <div className="row g-3 mt-5 align-items-center">
         <h2 className="fw-light">Touch pHAT Settings</h2>
         <p>Configure actions for each Touch pHAT button.</p>
-        {[0, 1, 2, 3, 4, 5].map((buttonIndex) => (
-          <React.Fragment key={buttonIndex}>
-            <label htmlFor={`button_${buttonIndex}`} className="col-sm-4 col-form-label">
-              Button {buttonIndex}:
+        {['Back', 'A', 'B', 'C', 'D', 'Enter'].map((buttonName) => (
+          <React.Fragment key={buttonName}>
+            <label htmlFor={buttonName} className="col-sm-4 col-form-label">
+              {buttonName}:
             </label>
             <div className="col-sm-8">
               <select
                 className="form-select"
-                id={`button_${buttonIndex}`}
-                value={this.state.settings.touchphat[`button_${buttonIndex}`]}
+                id={buttonName}
+                value={this.state.settings.touchphat[buttonName]}
                 onChange={this.handleTouchPhatChange.bind(this)}
               >
                 {touchPhatActions.map((action) => (

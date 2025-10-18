@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 try:
     import touchphat
     touchphat_present = True
@@ -17,12 +19,12 @@ class TouchPhatHandler(object):
         self._button_actions = {} # Will be loaded from settings
 
         if touchphat_present:
-            touchphat.on_release(0, self._on_button_0_release)
-            touchphat.on_release(1, self._on_button_1_release)
-            touchphat.on_release(2, self._on_button_2_release)
-            touchphat.on_release(3, self._on_button_3_release)
-            touchphat.on_release(4, self._on_button_4_release)
-            touchphat.on_release(5, self._on_button_5_release)
+            touchphat.on_release("Back", self._on_button_back_release)
+            touchphat.on_release("A", self._on_button_a_release)
+            touchphat.on_release("B", self._on_button_b_release)
+            touchphat.on_release("C", self._on_button_c_release)
+            touchphat.on_release("D", self._on_button_d_release)
+            touchphat.on_release("Enter", self._on_button_enter_release)
 
     def stop(self):
         self._stop_event = True
@@ -76,26 +78,27 @@ class TouchPhatHandler(object):
         else:
             logging.info(f"TouchPhat: Button {button_id} pressed - No action configured")
 
-    def _on_button_0_release(self):
-        asyncio.create_task(self._trigger_action(0))
+    def _on_button_back_release(self, event):
+        asyncio.create_task(self._trigger_action("Back"))
 
-    def _on_button_1_release(self):
-        asyncio.create_task(self._trigger_action(1))
+    def _on_button_a_release(self, event):
+        asyncio.create_task(self._trigger_action("A"))
 
-    def _on_button_2_release(self):
-        asyncio.create_task(self._trigger_action(2))
+    def _on_button_b_release(self, event):
+        asyncio.create_task(self._trigger_action("B"))
 
-    def _on_button_3_release(self):
-        asyncio.create_task(self._trigger_action(3))
+    def _on_button_c_release(self, event):
+        asyncio.create_task(self._trigger_action("C"))
 
-    def _on_button_4_release(self):
-        asyncio.create_task(self._trigger_action(4))
+    def _on_button_d_release(self, event):
+        asyncio.create_task(self._trigger_action("D"))
 
-    def _on_button_5_release(self):
-        asyncio.create_task(self._trigger_action(5))
+    def _on_button_enter_release(self, event):
+        asyncio.create_task(self._trigger_action("Enter"))
 
 async def main():
     logging.basicConfig(format='TouchPhat %(levelname)s: %(message)s', level=logging.DEBUG)
+    logging.info(f"Touch pHAT present: {touchphat_present}")
     touch_phat_handler = TouchPhatHandler()
     await touch_phat_handler.run()
 
