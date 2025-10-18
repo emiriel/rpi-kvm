@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from 'react-bootstrap';
-import { ServerConfig  } from './Common';
+import { ServerConfig } from './Common';
 import BtClientRemovalModalButton from './BtClientRemovalModalButton';
 
 export type BtClientProps = {
@@ -17,7 +17,6 @@ export type BtClientInfo = {
 };
 
 export class BtClient extends React.Component<BtClientProps, any> {
-
   setAsActiveBtHost() {
     const { client } = this.props;
     const requestOptions = {
@@ -26,10 +25,7 @@ export class BtClient extends React.Component<BtClientProps, any> {
       body: JSON.stringify({ clientAddress: client.address }),
     };
 
-    fetch(
-      `${ServerConfig.url}switch_active_bt_host`,
-      requestOptions
-    );
+    fetch(`${ServerConfig.url}switch_active_bt_host`, requestOptions);
   }
 
   changeOrderLower() {
@@ -43,10 +39,7 @@ export class BtClient extends React.Component<BtClientProps, any> {
       }),
     };
 
-    fetch(
-      `${ServerConfig.url}change_client_order`,
-      requestOptions
-    );
+    fetch(`${ServerConfig.url}change_client_order`, requestOptions);
   }
 
   changeOrderHigher() {
@@ -60,10 +53,7 @@ export class BtClient extends React.Component<BtClientProps, any> {
       }),
     };
 
-    fetch(
-      `${ServerConfig.url}change_client_order`,
-      requestOptions
-    );
+    fetch(`${ServerConfig.url}change_client_order`, requestOptions);
   }
 
   removeClient() {
@@ -84,24 +74,15 @@ export class BtClient extends React.Component<BtClientProps, any> {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ clientAddress: client.address }),
     };
-    const connectionApiEndpoint = client.isConnected
-      ? 'disconnect_client'
-      : 'connect_client';
-    fetch(
-      `${ServerConfig.url}${connectionApiEndpoint}`,
-      requestOptions
-    );
+    const connectionApiEndpoint = client.isConnected ? 'disconnect_client' : 'connect_client';
+    fetch(`${ServerConfig.url}${connectionApiEndpoint}`, requestOptions);
   }
 
   renderSwitchActiveBtHostButton() {
     const { client } = this.props;
     if (client.isHost) return <></>;
     return (
-      <Button
-        variant="outline-secondary"
-        className="mx-1"
-        onClick={() => this.setAsActiveBtHost()}
-      >
+      <Button variant="outline-secondary" className="mx-1" onClick={() => this.setAsActiveBtHost()}>
         Set as active Host
       </Button>
     );
@@ -111,11 +92,7 @@ export class BtClient extends React.Component<BtClientProps, any> {
     const { client } = this.props;
     if (client.order > 0) {
       return (
-        <Button
-          variant="default"
-          className="text-white col-1 py-0 ps-0 pe-3"
-          onClick={() => this.changeOrderLower()}
-        >
+        <Button variant="default" className="text-white col-1 py-0 ps-0 pe-3" onClick={() => this.changeOrderLower()}>
           <i className="bi bi-chevron-left" style={{ fontSize: '0.9rem' }} />
         </Button>
       );
@@ -135,11 +112,7 @@ export class BtClient extends React.Component<BtClientProps, any> {
     const { client, lastClientOrderNumber } = this.props;
     if (client.order < lastClientOrderNumber) {
       return (
-        <Button
-          variant="default"
-          className="text-white col-1 py-0 ps-0 pe-3"
-          onClick={() => this.changeOrderHigher()}
-        >
+        <Button variant="default" className="text-white col-1 py-0 ps-0 pe-3" onClick={() => this.changeOrderHigher()}>
           <i className="bi bi-chevron-right" style={{ fontSize: '0.9rem' }} />
         </Button>
       );
@@ -173,9 +146,7 @@ export class BtClient extends React.Component<BtClientProps, any> {
         <div className="card mb-3 border-success">
           <div className="card-header bg-success pb-0">
             <div className="row">
-              <div className="text-center text-white col-2">
-                {this.renderOrderButtons()}
-              </div>
+              <div className="text-center text-white col-2">{this.renderOrderButtons()}</div>
               <h5 className="text-center text-white col-8">{client.name}</h5>
             </div>
           </div>
@@ -184,10 +155,7 @@ export class BtClient extends React.Component<BtClientProps, any> {
             <p className="card-text">{client.address}</p>
             <div className="text-end">
               {this.renderSwitchActiveBtHostButton()}
-              <Button
-                variant="outline-danger"
-                onClick={() => this.changeConnectState()}
-              >
+              <Button variant="outline-danger" onClick={() => this.changeConnectState()}>
                 Disconnect
               </Button>
             </div>
@@ -204,15 +172,10 @@ export class BtClient extends React.Component<BtClientProps, any> {
         <div className="card mb-3 border-secondary">
           <div className="card-header bg-secondary pb-0">
             <div className="row">
-              <div className="text-center text-white col-2">
-                {this.renderOrderButtons()}
-              </div>
+              <div className="text-center text-white col-2">{this.renderOrderButtons()}</div>
               <h5 className="text-center text-white col-8">{client.name}</h5>
               <div className="text-center text-white col-1 offset-1">
-                <BtClientRemovalModalButton
-                  name={client.name}
-                  removeCB={() => this.removeClient()}
-                />
+                <BtClientRemovalModalButton name={client.name} removeCB={() => this.removeClient()} />
               </div>
             </div>
           </div>
@@ -221,10 +184,7 @@ export class BtClient extends React.Component<BtClientProps, any> {
             <p className="card-text">{client.address}</p>
             <div className="text-end">
               {this.renderSwitchActiveBtHostButton()}
-              <Button
-                variant="outline-success"
-                onClick={() => this.changeConnectState()}
-              >
+              <Button variant="outline-success" onClick={() => this.changeConnectState()}>
                 Connect
               </Button>
             </div>

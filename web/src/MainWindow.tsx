@@ -37,13 +37,11 @@ export default class MainWindow extends React.Component<any, MainWindowState> {
         <header>
           <NavigationBar
             activeView={activeView}
-            switchActiveViewCB={(newActiveView) =>
-              this.switchActiveView(newActiveView)
-            }
+            switchActiveViewCB={(newActiveView) => this.switchActiveView(newActiveView)}
           />
         </header>
         <NotificationProvider>
-          <NotificationOutlet/>
+          <NotificationOutlet />
           <main className="pb-3">{this.renderActiveView()}</main>
         </NotificationProvider>
       </>

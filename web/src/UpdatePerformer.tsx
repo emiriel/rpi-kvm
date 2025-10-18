@@ -9,17 +9,16 @@ type UpdatePerformerState = {
 };
 
 export default class UpdatePerformer extends React.Component<any, UpdatePerformerState> {
-
   static contextType = NotificationContext;
 
   constructor(props: any) {
-    super(props)
+    super(props);
 
     this.state = {
       isUpdateAvailable: false,
       isUpdateSuccessful: false,
-      hasUpdatePerformed: false
-    }
+      hasUpdatePerformed: false,
+    };
   }
 
   componentDidMount() {
@@ -28,52 +27,56 @@ export default class UpdatePerformer extends React.Component<any, UpdatePerforme
 
   fetchUpdateAvailable() {
     fetch(ServerConfig.url + 'is_update_available')
-      .then(response => response.json())
+      .then((response) => response.json())
       .then(
         (result) => {
           this.setState({
-            isUpdateAvailable: result.isUpdateAvailable})
+            isUpdateAvailable: result.isUpdateAvailable,
+          });
         },
         (error) => {
-          this.context.addNotification(NotifyType.error, 'Something went wrong during check for updates...')
+          this.context.addNotification(NotifyType.error, 'Something went wrong during check for updates...');
         }
-      )
+      );
   }
 
   performUpdate() {
     fetch(ServerConfig.url + 'perform_update')
-      .then(response => response.json())
+      .then((response) => response.json())
       .then(
         (result) => {
           this.setState({
             isUpdateSuccessful: result.isUpdateSuccessful,
             hasUpdatePerformed: result.hasUpdatePerformed,
-        })
+          });
         },
         (error) => {
-          this.context.addNotification(NotifyType.error, 'Something went wrong during trigger RPI-K(V)M update...')
+          this.context.addNotification(NotifyType.error, 'Something went wrong during trigger RPI-K(V)M update...');
         }
-      )
+      );
   }
 
   render() {
     const { isUpdateAvailable, isUpdateSuccessful, hasUpdatePerformed } = this.state;
-    if(isUpdateAvailable) {
-      let bannerContent = <InfoBanner message="An update is available." />
-      let updateButton: React.ReactNode = ""
-      if(hasUpdatePerformed) {
-        if(isUpdateSuccessful) {
-          bannerContent = <SuccessBanner message="RPI-K(V)M updated successfuly. The update will be active after the next KVM service restart or Raspberry Pi restart." />
+    if (isUpdateAvailable) {
+      let bannerContent = <InfoBanner message="An update is available." />;
+      let updateButton: React.ReactNode = '';
+      if (hasUpdatePerformed) {
+        if (isUpdateSuccessful) {
+          bannerContent = (
+            <SuccessBanner message="RPI-K(V)M updated successfuly. The update will be active after the next KVM service restart or Raspberry Pi restart." />
+          );
         } else {
-          bannerContent = <ErrorAlert message="An error occured during RPI-K(V)M update." />
+          bannerContent = <ErrorAlert message="An error occured during RPI-K(V)M update." />;
         }
       } else {
-        updateButton = 
+        updateButton = (
           <div className="d-grid col-4">
             <button className="btn btn-outline-warning" onClick={() => this.performUpdate()}>
               Perform update
             </button>
           </div>
+        );
       }
 
       return (
@@ -86,7 +89,7 @@ export default class UpdatePerformer extends React.Component<any, UpdatePerforme
         </div>
       );
     } else {
-      return(
+      return (
         <div className="container">
           <div className="row g-3 align-items-center">
             <h2 className="fw-light">Updates</h2>
