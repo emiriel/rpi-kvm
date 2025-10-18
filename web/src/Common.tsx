@@ -2,10 +2,10 @@ import React from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
 
 export const ServerConfig = {
-  url: "/",
-  name: "",
+  url: '/',
+  name: '',
   port: 8080,
-}
+};
 
 export type BannerProps = {
   message: string;

@@ -20,21 +20,16 @@ export default class NavigationBar extends React.Component<NavbarProps, any> {
     return (
       <>
         <Navbar bg="dark" variant="dark" className="navbar-expand px-3">
-          <a className="navbar-brand" href="#">RPI-K(V)M</a>
-          <Nav
-            className="me-auto"
-            activeKey={activeView}
-            onSelect={(selectedKey) => this.onSelect(selectedKey)}
-          >
+          <a className="navbar-brand" href="#">
+            RPI-K(V)M
+          </a>
+          <Nav className="me-auto" activeKey={activeView} onSelect={(selectedKey) => this.onSelect(selectedKey)}>
             <Nav.Link eventKey="Home">Home</Nav.Link>
             <Nav.Link eventKey="Bt-Clients" className="me-auto">
               Bt-Clients
             </Nav.Link>
           </Nav>
-          <Nav
-            activeKey={activeView}
-            onSelect={(selectedKey) => this.onSelect(selectedKey)}
-          >
+          <Nav activeKey={activeView} onSelect={(selectedKey) => this.onSelect(selectedKey)}>
             <Nav.Link eventKey="Settings" className="py-0">
               <i className="bi bi-gear-fill fs-3" />
             </Nav.Link>

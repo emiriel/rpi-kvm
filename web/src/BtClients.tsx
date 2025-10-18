@@ -27,7 +27,7 @@ export default class BtClients extends React.Component<any, BtClientsState> {
   }
 
   componentDidMount() {
-    this.address = window.location.host
+    this.address = window.location.host;
     this.connect();
   }
 
@@ -62,10 +62,7 @@ export default class BtClients extends React.Component<any, BtClientsState> {
       );
 
       this.timeout += this.timeout; // increment retry interval
-      this.connectInterval = setTimeout(
-        this.check,
-        Math.min(BtClients.MAX_TIMEOUT_CHECK_SERVER_CON, this.timeout)
-      ); // call check function after timeout
+      this.connectInterval = setTimeout(this.check, Math.min(BtClients.MAX_TIMEOUT_CHECK_SERVER_CON, this.timeout)); // call check function after timeout
     };
 
     // websocket onerror event listener
@@ -80,9 +77,7 @@ export default class BtClients extends React.Component<any, BtClientsState> {
 
     this.ws.onmessage = (message) => {
       const dataJson = JSON.parse(JSON.parse(message.data));
-      const sortedClients = dataJson.clients.sort(
-        (a: BtClientInfo, b: BtClientInfo) => a.order - b.order
-      );
+      const sortedClients = dataJson.clients.sort((a: BtClientInfo, b: BtClientInfo) => a.order - b.order);
       this.setState({
         clients: sortedClients,
         isLoading: false,
@@ -114,11 +109,7 @@ export default class BtClients extends React.Component<any, BtClientsState> {
         }
       });
       const clientsInfo = clients.map((client) => (
-        <BtClient
-          key={client.address}
-          client={client}
-          lastClientOrderNumber={lastClientOrderNumber}
-        />
+        <BtClient key={client.address} client={client} lastClientOrderNumber={lastClientOrderNumber} />
       ));
       clientsContent = <>{clientsInfo}</>;
     }

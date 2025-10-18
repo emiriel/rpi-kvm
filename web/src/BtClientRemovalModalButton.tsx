@@ -43,11 +43,7 @@ export default class BtClientRemovalModalButton extends React.Component<
     const { show } = this.state;
     return (
       <>
-        <Button
-          variant="close"
-          className="col-1 btn-close-white"
-          onClick={() => this.handleShow()}
-        />
+        <Button variant="close" className="col-1 btn-close-white" onClick={() => this.handleShow()} />
 
         <Modal show={show} onHide={() => this.handleClose()}>
           <Modal.Header>
@@ -55,25 +51,18 @@ export default class BtClientRemovalModalButton extends React.Component<
           </Modal.Header>
           <Modal.Body>
             <p>
-              This will remove the client permanently from the KVM. After the
-              removal a new bluetooth pairing and trusting needs to perform to
-              add the device again to the KVM.
+              This will remove the client permanently from the KVM. After the removal a new bluetooth pairing and
+              trusting needs to perform to add the device again to the KVM.
               <br />
               <br />
               Do you really want to remove <strong>{name}</strong>?
             </p>
           </Modal.Body>
           <Modal.Footer>
-            <Button
-              variant="outline-secondary"
-              onClick={() => this.handleClose()}
-            >
+            <Button variant="outline-secondary" onClick={() => this.handleClose()}>
               Close
             </Button>
-            <Button
-              variant="outline-danger"
-              onClick={() => this.removeClient()}
-            >
+            <Button variant="outline-danger" onClick={() => this.removeClient()}>
               Remove
             </Button>
           </Modal.Footer>
