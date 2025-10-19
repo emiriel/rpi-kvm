@@ -1,0 +1,16 @@
+[Unit]
+Description=RPi KVM Keyboard Service
+After=rpi-kvm-core.service
+Requires=rpi-kvm-core.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 __INSTALL_DIR__/rpi_kvm/keyboard.py
+Restart=always
+RestartSec=10
+User=root
+Group=root
+WorkingDirectory=__INSTALL_DIR__
+
+[Install]
+WantedBy=rpi-kvm.target

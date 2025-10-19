@@ -1,0 +1,6 @@
+[Unit]
+Description=RPi KVM Target
+Wants=rpi-kvm-core.service rpi-kvm-web.service rpi-kvm-infohub.service rpi-kvm-mouse.service rpi-kvm-keyboard.service rpi-kvm-touchphat.service
+
+[Install]
+WantedBy=multi-user.target

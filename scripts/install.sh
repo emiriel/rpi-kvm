@@ -60,17 +60,25 @@ sudo cp ./conf/bluetooth.service /lib/systemd/system/bluetooth.service
 sudo sed -i "s|BLUETOOTH_DAEMON_PATH|${bluetoothd_path}|" /lib/systemd/system/bluetooth.service
 
 echo "Copy RPI-KVM service config"
-sed -i'' -e "s|__install_dir__|"`pwd`"|g" ./conf/rpi-kvm.service
-sed -i'' -e "s|__install_dir__|"`pwd`"|g" ./rpi_kvm/web.py
-sudo cp ./conf/rpi-kvm.service /lib/systemd/system/rpi-kvm.service
+# Replace the placeholder for the install dir with the correct path
+sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-core.service
+sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-web.service
+sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-infohub.service
+sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-mouse.service
+sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-keyboard.service
+sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-touchphat.service
+sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./rpi_kvm/web.py
+
+sudo cp ./systemd/* /etc/systemd/system/
+
 echo "Replace legacy pi user with current user if necessary"
 sudo systemctl daemon-reload
 echo "Restart bluetooth service with the new config"
 sudo systemctl restart bluetooth
 echo "Enable RPI-KVM service"
-sudo systemctl enable rpi-kvm
+sudo systemctl enable rpi-kvm.target
 echo "Start RPI-KVM service"
-sudo systemctl start rpi-kvm
+sudo systemctl start rpi-kvm.target
 echo "--- Configuration Step Done ------"
 echo "### RPI-KVM Install Done #########"
 git reset --hard
