@@ -17,6 +17,7 @@ class TouchPhatHandler(object):
         self._kvm_dbus_iface = None
         self._stop_event = False
         self._button_actions = {} # Will be loaded from settings
+        self._loop = None
 
         if touchphat_present:
             touchphat.on_release("Back", self._on_button_back_release)
@@ -47,6 +48,7 @@ class TouchPhatHandler(object):
         if not touchphat_present:
             logging.info("TouchPhat: Touch pHAT not found, disabling.")
             return
+        self._loop = asyncio.get_running_loop()
         logging.info(f"TouchPhat: D-Bus service connecting...")
         await self._connect_to_dbus_service()
         await self._load_settings()
@@ -79,22 +81,22 @@ class TouchPhatHandler(object):
             logging.info(f"TouchPhat: Button {button_id} pressed - No action configured")
 
     def _on_button_back_release(self, event):
-        asyncio.create_task(self._trigger_action("Back"))
+        asyncio.run_coroutine_threadsafe(self._trigger_action("Back"), self._loop)
 
     def _on_button_a_release(self, event):
-        asyncio.create_task(self._trigger_action("A"))
+        asyncio.run_coroutine_threadsafe(self._trigger_action("A"), self._loop)
 
     def _on_button_b_release(self, event):
-        asyncio.create_task(self._trigger_action("B"))
+        asyncio.run_coroutine_threadsafe(self._trigger_action("B"), self._loop)
 
     def _on_button_c_release(self, event):
-        asyncio.create_task(self._trigger_action("C"))
+        asyncio.run_coroutine_threadsafe(self._trigger_action("C"), self._loop)
 
     def _on_button_d_release(self, event):
-        asyncio.create_task(self._trigger_action("D"))
+        asyncio.run_coroutine_threadsafe(self._trigger_action("D"), self._loop)
 
     def _on_button_enter_release(self, event):
-        asyncio.create_task(self._trigger_action("Enter"))
+        asyncio.run_coroutine_threadsafe(self._trigger_action("Enter"), self._loop)
 
 async def main():
     logging.basicConfig(format='TouchPhat %(levelname)s: %(message)s', level=logging.DEBUG)
