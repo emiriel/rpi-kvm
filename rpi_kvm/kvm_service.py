@@ -105,10 +105,7 @@ class KvmDbusService(ServiceInterface):
         client_addresses = self._bt_server._get_connected_client_addresses()
         if len(client_addresses) > 1:
             client_address = client_addresses[1]
-            self._bt_server.switch_active_host_to(client_address)
-            client_names = self._bt_server.get_connected_client_names()
-            logging.info(f"D-Bus: Switch to next connected host: {client_names[0]}")
-            self.signal_host_change(client_names)
+            self.SwitchActiveHost(client_address)
  
     @dbus_next.service.method()
     def SendKeyboardUsbTelegram(self, modifiers: 'ab', keys: 'ay') -> '':
