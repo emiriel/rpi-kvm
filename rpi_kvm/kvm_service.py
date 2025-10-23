@@ -102,10 +102,13 @@ class KvmDbusService(ServiceInterface):
 
     @dbus_next.service.method()
     def SwitchToNextConnectedHost(self) -> '':
-        self._bt_server.switch_to_next_connected_host()
-        client_names = self._bt_server.get_connected_client_names()
-        logging.info(f"D-Bus: Switch to next connected host: {client_names[0]}")
-        self.signal_host_change(client_names)
+        client_addresses = self._bt_server._get_connected_client_addresses()
+        if len(client_addresses) > 1:
+            client_address = client_addresses[1]
+            self._bt_server.switch_active_host_to(client_address)
+            client_names = self._bt_server.get_connected_client_names()
+            logging.info(f"D-Bus: Switch to next connected host: {client_names[0]}")
+            self.signal_host_change(client_names)
  
     @dbus_next.service.method()
     def SendKeyboardUsbTelegram(self, modifiers: 'ab', keys: 'ay') -> '':
@@ -113,7 +116,7 @@ class KvmDbusService(ServiceInterface):
         action = self._hotkey_detector.evaluate_new_input([modifiers_int, *keys])
         # Only the last key of the hot key combination will not be sendted
         if action == HotkeyAktion.SwitchToNextHost:
-            self._bt_server.switch_to_next_connected_host()
+            self.SwitchToNextConnectedHost()
             client_names = self._bt_server.get_connected_client_names()
             logging.info(f"D-Bus: {action.name}: {client_names[0]}")
             self.signal_host_change(client_names)
@@ -139,7 +142,7 @@ class KvmDbusService(ServiceInterface):
     def SendMouseUsbTelegram(self, buttons: 'ab', x_pos: 'i', y_pos: 'i', v_wheel: 'i', h_wheel: 'i') -> '':
         action = self._hotkey_detector.evaluate_new_mouse_input(buttons)
         if action == HotkeyAktion.SwitchToNextHost:
-            self._bt_server.switch_to_next_connected_host()
+            self.SwitchToNextConnectedHost()
             client_names = self._bt_server.get_connected_client_names()
             logging.info(f"D-Bus: {action.name}: {client_names[0]}")
             self.signal_host_change(client_names)
