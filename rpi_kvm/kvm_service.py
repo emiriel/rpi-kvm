@@ -106,6 +106,34 @@ class KvmDbusService(ServiceInterface):
             self.SwitchActiveHost(client_addresses[1])
 
     @dbus_next.service.method()
+    def SendKeyboardUsbTelegram(self, modifiers: 'ab', keys: 'ay') -> '':
+        modifiers_int =  UsbHidDecoder.convert_modifier_bit_mask_to_int(modifiers)
+        action = self._hotkey_detector.evaluate_new_input([modifiers_int, *keys])
+        # Only the last key of the hot key combination will not be sendted
+        if action == HotkeyAktion.SwitchToNextHost:
+            self._bt_server.switch_to_next_connected_host()
+            client_names = self._bt_server.get_connected_client_names()
+            logging.info(f"D-Bus: {action.name}: {client_names[0]}")
+            self.signal_host_change(client_names)
+        else:
+            # |- USB HID input report
+            # |     |- USB HID usage report => Keyboard
+            # |     |     |- Bit mask for modifier keys
+            # |     |     |  0x80: Right GUI
+            # |     |     |  0x40: Right Alt
+            # |     |     |  0x20: Right Shift
+            # |     |     |  0x10: Right Control
+            # |     |     |  0x08: Left GUI
+            # |     |     |  0x04: Left Alt
+            # |     |     |  0x02: Left Shift
+            # |     |     |  0x01: Left Control
+            # |     |     |     |- Vendor reserved
+            # |     |     |     |     |-> 6x pressed keys
+            # 0xA1, 0x01, 0xXX, 0x00, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX
+            keyboard_usb_telegram = [0xA1, 1, modifiers_int, 0, *keys]
+            self._bt_server.send(keyboard_usb_telegram)
+
+    @dbus_next.service.method()
     def SwitchToNextConnectedHost(self) -> '':
         self.switch_to_next_connected_host_internal()
 
