@@ -3,6 +3,7 @@ Description=rpi-kvm
 After=multi-user.target
  
 [Service]
+Environment="LOG_LEVEL=INFO"
 Type=forking
 ExecStart=__INSTALL_DIR__/rpi-kvm.sh restart
 WorkingDirectory=__INSTALL_DIR__

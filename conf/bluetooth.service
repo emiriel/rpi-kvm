@@ -4,6 +4,7 @@ Documentation=man:bluetoothd(8)
 ConditionPathIsDirectory=/sys/class/bluetooth
 
 [Service]
+Environment="LOG_LEVEL=INFO"
 Type=dbus
 BusName=org.bluez
 ExecStart=BLUETOOTH_DAEMON_PATH --noplugin=input

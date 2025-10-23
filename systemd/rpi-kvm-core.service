@@ -4,6 +4,7 @@ After=bluetooth.service
 Requires=bluetooth.service
 
 [Service]
+Environment="LOG_LEVEL=INFO"
 Type=simple
 ExecStart=/usr/bin/python3 __INSTALL_DIR__/rpi_kvm/kvm_service.py
 Restart=always
