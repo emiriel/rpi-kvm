@@ -16,7 +16,6 @@ from settings import Settings
 from bt_server import BtServer
 from hotkey import HotkeyDetector, HotkeyConfig, HotkeyAktion
 from usb_hid_decoder import UsbHidDecoder
-from touch_phat import TouchPhatHandler
 
 class KvmDbusService(ServiceInterface):
     def __init__(self, settings, hotkey_detector, bt_server):
@@ -198,9 +197,6 @@ async def main():
     kvm_dbus_service = KvmDbusService(settings, hotkey_detector, bt_server)
     kvm_dbus_service_task = asyncio.create_task( kvm_dbus_service.run() )
 
-    touch_phat_handler = TouchPhatHandler()
-    touch_phat_handler_task = asyncio.create_task( touch_phat_handler.run() )
-
     main_future = asyncio.Future()
 
     def signal_handler(sig, frame):
@@ -214,8 +210,6 @@ async def main():
     await kvm_dbus_service_task
     bt_server.stop()
     await bt_server_task
-    touch_phat_handler.stop()
-    await touch_phat_handler_task
     logging.error("System: Shut down completed")
 
 if __name__ == "__main__":

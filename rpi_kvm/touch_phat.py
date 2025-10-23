@@ -68,6 +68,7 @@ class TouchPhatHandler(object):
             await self._load_settings()
 
     async def _trigger_action(self, button_id):
+        logging.debug("TouchPhat: Trigger action start")
         action = self._button_actions.get(button_id)
         if action == "switch_next_host":
             logging.info(f"TouchPhat: Button {button_id} pressed - Switching to next host")
