@@ -172,15 +172,6 @@ class BtServer(object):
         if self._clients_connected != old_clients_connected:
             self._notify_on_clients_change()
 
-    def switch_to_next_connected_host(self):
-        if len(self._clients_connected) > 1:
-            next_host = self._get_connected_client_addresses()[1]
-            self._active_host = self._clients_connected[next_host]
-        elif len(self._clients_connected) == 1:
-            next_host = self._get_connected_client_addresses()[0]
-            self._active_host = self._clients_connected[next_host]
-        self._clients_order.active_client = self._active_host.address
-
     def switch_active_host_to(self, client_address):
         if client_address in self._clients:
             self._active_host = self._clients[client_address]
