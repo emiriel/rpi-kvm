@@ -176,6 +176,7 @@ class BtServer(object):
         if client_address in self._clients:
             self._active_host = self._clients[client_address]
         self._clients_order.active_client = self._active_host.address
+        logging.info(f"Server: switched active host to: {self._active_host.name}")
 
     def _get_connected_client_addresses(self):
         if self._active_host and len(self._clients_connected) > 0:
