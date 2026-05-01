@@ -64,8 +64,6 @@ echo "Copy RPI-KVM service config"
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-core.service
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-web.service
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-infohub.service
-sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-mouse.service
-sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-keyboard.service
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-touchphat.service
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./rpi_kvm/web.py
 
