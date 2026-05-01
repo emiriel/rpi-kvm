@@ -25,12 +25,28 @@ class KvmDbusService(ServiceInterface):
         self._hotkey_detector = hotkey_detector
         self._bt_server = bt_server
         self._stop_event = False
+        self._auto_switch_task = None
 
     def stop(self):
         self._stop_event = True
 
     def on_clients_change(self, clients):
         self.signal_clients_change(clients)
+        if clients and clients[0].startswith("off:"):
+            if not self._auto_switch_task or self._auto_switch_task.done():
+                self._auto_switch_task = asyncio.create_task(
+                    self._auto_switch_after_delay(7))
+        else:
+            if self._auto_switch_task and not self._auto_switch_task.done():
+                self._auto_switch_task.cancel()
+                self._auto_switch_task = None
+
+    async def _auto_switch_after_delay(self, delay_seconds):
+        await asyncio.sleep(delay_seconds)
+        active = self._bt_server._active_host
+        if active and not active.is_connected:
+            logging.info("Auto-switch: active host still offline after delay — switching")
+            self.switch_to_next_connected_host_internal()
 
     async def run(self):
         logging.info("D-Bus: Register D-Bus service")
@@ -102,8 +118,15 @@ class KvmDbusService(ServiceInterface):
 
     def switch_to_next_connected_host_internal(self):
         client_addresses = self._bt_server._get_connected_client_addresses()
-        if client_addresses and len(client_addresses) > 1:
-            self.SwitchActiveHost(client_addresses[1])
+        if not client_addresses:
+            return
+        active = self._bt_server._active_host
+        active_is_connected = active and active.address in client_addresses
+        if active_is_connected:
+            if len(client_addresses) > 1:
+                self.SwitchActiveHost(client_addresses[1])
+        else:
+            self.SwitchActiveHost(client_addresses[0])
 
     @dbus_next.service.method()
     def SwitchToNextConnectedHost(self) -> '':
