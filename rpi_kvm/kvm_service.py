@@ -16,6 +16,7 @@ from settings import Settings
 from bt_server import BtServer
 from hotkey import HotkeyDetector, HotkeyConfig, HotkeyAktion
 from usb_hid_decoder import UsbHidDecoder
+from input_handler import InputManager
 
 class KvmDbusService(ServiceInterface):
     def __init__(self, settings, hotkey_detector, bt_server):
@@ -99,74 +100,14 @@ class KvmDbusService(ServiceInterface):
         logging.info(f"D-Bus: Switch active host to: {client_names[0]}")
         self.signal_host_change(client_names)
 
-    @dbus_next.service.method()
-    def SwitchToNextConnectedHost(self) -> '':
+    def switch_to_next_connected_host_internal(self):
         client_addresses = self._bt_server._get_connected_client_addresses()
-        if len(client_addresses) > 1:
-            client_address = client_addresses[1]
-            self.SwitchActiveHost(client_address)
- 
-    @dbus_next.service.method()
-    def SendKeyboardUsbTelegram(self, modifiers: 'ab', keys: 'ay') -> '':
-        modifiers_int =  UsbHidDecoder.convert_modifier_bit_mask_to_int(modifiers)
-        action = self._hotkey_detector.evaluate_new_input([modifiers_int, *keys])
-        # Only the last key of the hot key combination will not be sendted
-        if action == HotkeyAktion.SwitchToNextHost:
-            self.SwitchToNextConnectedHost()
-            client_names = self._bt_server.get_connected_client_names()
-            logging.info(f"D-Bus: {action.name}: {client_names[0]}")
-            self.signal_host_change(client_names)
-        else:
-            # |- USB HID input report
-            # |     |- USB HID usage report => Keyboard
-            # |     |     |- Bit mask for modifier keys
-            # |     |     |  0x80: Right GUI
-            # |     |     |  0x40: Right Alt
-            # |     |     |  0x20: Right Shift
-            # |     |     |  0x10: Right Control
-            # |     |     |  0x08: Left GUI
-            # |     |     |  0x04: Left Alt
-            # |     |     |  0x02: Left Shift
-            # |     |     |  0x01: Left Control
-            # |     |     |     |- Vendor reserved
-            # |     |     |     |     |-> 6x pressed keys
-            # 0xA1, 0x01, 0xXX, 0x00, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX
-            keyboard_usb_telegram = [0xA1, 1, modifiers_int, 0, *keys]
-            self._bt_server.send(keyboard_usb_telegram)
+        if client_addresses and len(client_addresses) > 1:
+            self.SwitchActiveHost(client_addresses[1])
 
     @dbus_next.service.method()
-    def SendMouseUsbTelegram(self, buttons: 'ab', x_pos: 'i', y_pos: 'i', v_wheel: 'i', h_wheel: 'i') -> '':
-        action = self._hotkey_detector.evaluate_new_mouse_input(buttons)
-        if action == HotkeyAktion.SwitchToNextHost:
-            self.SwitchToNextConnectedHost()
-            client_names = self._bt_server.get_connected_client_names()
-            logging.info(f"D-Bus: {action.name}: {client_names[0]}")
-            self.signal_host_change(client_names)
-        else:
-            buttons_byte = UsbHidDecoder.convert_modifier_bit_mask_to_int(buttons)
-            # limit the values to fit inside 1 byte
-            x_pos_byte = UsbHidDecoder.enshure_byte_size(x_pos)
-            y_pos_byte = UsbHidDecoder.enshure_byte_size(y_pos)
-            v_wheel_byte = UsbHidDecoder.enshure_byte_size(v_wheel)
-            h_wheel_byte = UsbHidDecoder.enshure_byte_size(h_wheel)
-            # |- USB HID input report
-            # |     |- USB HID usage report => Mouse
-            # |     |     |- Bit mask for mouse buttons
-            # |     |     |  0x80: Not defined
-            # |     |     |  0x40: Not defined
-            # |     |     |  0x20: Not defined
-            # |     |     |  0x10: Forward mouse button
-            # |     |     |  0x08: Backward mouse button
-            # |     |     |  0x04: Middle mouse button
-            # |     |     |  0x02: Right mouse button
-            # |     |     |  0x01: Left mouse button
-            # |     |     |     |- Mouse x position
-            # |     |     |     |     |- Mouse y position
-            # |     |     |     |     |     |- Vertical wheel position
-            # |     |     |     |     |     |     |- Horizontal wheel position
-            # 0xA1, 0x02, 0xXX, 0xXX, 0xXX, 0xXX, 0xXX]
-            mouse_usb_telegram = [0xA1, 2, buttons_byte, x_pos_byte, y_pos_byte, v_wheel_byte, h_wheel_byte]
-            self._bt_server.send(mouse_usb_telegram)
+    def SwitchToNextConnectedHost(self) -> '':
+        self.switch_to_next_connected_host_internal()
 
     @dbus_next.service.signal()
     def signal_host_change(self, client_names: 'as') -> 'as':
@@ -197,6 +138,13 @@ async def main():
     kvm_dbus_service = KvmDbusService(settings, hotkey_detector, bt_server)
     kvm_dbus_service_task = asyncio.create_task( kvm_dbus_service.run() )
 
+    input_manager = InputManager(
+        bt_server,
+        hotkey_detector,
+        kvm_dbus_service.switch_to_next_connected_host_internal,
+    )
+    input_manager_task = asyncio.create_task( input_manager.run() )
+
     main_future = asyncio.Future()
 
     def signal_handler(sig, frame):
@@ -204,8 +152,10 @@ async def main():
         main_future.set_result("")
     signal.signal(signal.SIGINT, signal_handler)
 
-    await main_future # wait unitl signal interrupts
+    await main_future # wait until signal interrupts
 
+    input_manager.stop()
+    await input_manager_task
     kvm_dbus_service.stop()
     await kvm_dbus_service_task
     bt_server.stop()
