@@ -151,6 +151,8 @@ class BtClient(object):
                 self._name = await self._bluez_itf.get_name()
                 logging.debug(f"{self._address}: Name resolves to {self._name}")
                 self._bluez_props.on_properties_changed(self._on_properties_changed)
+                self._is_bluez_connected = await self._bluez_itf.get_connected()
+                logging.debug(f"{self._address}: Initial Connected state: {self._is_bluez_connected}")
             except dbus_next.DBusError:
                 logging.warning(f"{self._address}: D-Bus bluez object available - reconnecting...")
                 await asyncio.sleep(5)
@@ -160,6 +162,9 @@ class BtClient(object):
             logging.debug(f'{self._name}: D-Bus bluez property changed: {changed} - {variant.value}')
             if changed == "Connected":
                 self._is_bluez_connected = variant.value
+                if variant.value and not self.is_alive and not self._stop_event:
+                    logging.info(f"{self._name}: BlueZ reports device connected — attempting HID reconnect")
+                    self.connect()
 
     async def _run(self):
         if self._stop_event: return
