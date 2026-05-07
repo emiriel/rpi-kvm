@@ -163,8 +163,13 @@ class BtClient(object):
             if changed == "Connected":
                 self._is_bluez_connected = variant.value
                 if variant.value and not self.is_alive and not self._stop_event:
-                    logging.info(f"{self._name}: BlueZ reports device connected — attempting HID reconnect")
-                    self.connect()
+                    logging.info(f"{self._name}: BlueZ reports device connected — scheduling HID reconnect")
+                    asyncio.get_event_loop().call_later(1.0, self._try_reconnect_if_still_offline)
+
+    def _try_reconnect_if_still_offline(self):
+        if self._is_bluez_connected and not self.is_alive and not self._stop_event:
+            logging.info(f"{self._name}: No incoming connection received — attempting outgoing HID reconnect")
+            self.connect()
 
     async def _run(self):
         if self._stop_event: return
