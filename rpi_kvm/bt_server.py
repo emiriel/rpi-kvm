@@ -179,16 +179,15 @@ class BtServer(object):
         logging.info(f"Server: switched active host to: {self._active_host.name}")
 
     def _get_connected_client_addresses(self):
-        if self._active_host and len(self._clients_connected) > 0:
-            client_addresses = self._clients_order.sort_clients( list(self._clients_connected.keys()) )
-            if self._active_host.address in client_addresses:
-                cur_active_index = client_addresses.index(self._active_host.address)
-            else:
-                cur_active_index = 0
-            client_addresses = [*client_addresses[cur_active_index:], *client_addresses[:cur_active_index]]
-            return client_addresses
-        else:
+        live_connected = {addr: c for addr, c in self._clients.items() if c.is_alive}
+        if not self._active_host or not live_connected:
             return None
+        client_addresses = self._clients_order.sort_clients(list(live_connected.keys()))
+        if self._active_host.address in client_addresses:
+            cur_active_index = client_addresses.index(self._active_host.address)
+        else:
+            cur_active_index = 0
+        return [*client_addresses[cur_active_index:], *client_addresses[:cur_active_index]]
 
     def _notify_on_clients_change(self):
         for handler in self._handlers_on_clients_change:
