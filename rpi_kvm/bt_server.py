@@ -152,6 +152,7 @@ class BtServer(object):
             logging.info(f"Server: Client {client.name} was connected before - Stop old instance")
             self._clients[client.address].stop()
         self._clients[client.address] = client
+        client._on_disconnect_cb = self._check_for_client_communication_change
         if not self._active_host:
             if self._clients_order.active_client == client.address:
                 logging.info(f"Server: Active host: {client.name}")

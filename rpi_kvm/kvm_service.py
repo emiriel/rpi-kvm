@@ -35,7 +35,7 @@ class KvmDbusService(ServiceInterface):
         if clients and clients[0].startswith("off:"):
             if not self._auto_switch_task or self._auto_switch_task.done():
                 self._auto_switch_task = asyncio.create_task(
-                    self._auto_switch_after_delay(7))
+                    self._auto_switch_after_delay(3))
         else:
             if self._auto_switch_task and not self._auto_switch_task.done():
                 self._auto_switch_task.cancel()

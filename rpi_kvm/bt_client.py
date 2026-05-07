@@ -53,6 +53,7 @@ class BtClient(object):
         self._task = None
         self._bt_master_task = None
         self._bt_check_alive_task = None
+        self._on_disconnect_cb = None
 
     @property
     def address(self):
@@ -188,6 +189,8 @@ class BtClient(object):
 
         logging.info(f"\033[0;31m{self.name}: Connection terminated - client closed ({self.address})\033[0m")
         self._disconnect()
+        if self._on_disconnect_cb:
+            self._on_disconnect_cb()
 
     def _enshure_bt_master(self):
         if not self._bt_master_task or self._bt_master_task.done():
