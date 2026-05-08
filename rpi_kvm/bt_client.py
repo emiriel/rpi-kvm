@@ -169,7 +169,7 @@ class BtClient(object):
 
     def _try_reconnect_if_still_offline(self):
         if self._is_bluez_connected and not self.is_alive and not self._stop_event:
-            logging.info(f"{self._name}: No incoming connection received — attempting outgoing HID reconnect")
+            logging.info(f"{self._name}: Attempting outgoing HID reconnect")
             self.connect()
 
     async def _run(self):
@@ -198,6 +198,8 @@ class BtClient(object):
         self._disconnect()
         if self._on_disconnect_cb:
             self._on_disconnect_cb()
+        if self._is_bluez_connected and not self._stop_event:
+            asyncio.get_event_loop().call_later(5.0, self._try_reconnect_if_still_offline)
 
     def _enshure_bt_master(self):
         if not self._bt_master_task or self._bt_master_task.done():
