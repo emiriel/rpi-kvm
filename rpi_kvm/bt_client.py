@@ -166,11 +166,22 @@ class BtClient(object):
                 if variant.value and not self.is_alive and not self._stop_event:
                     logging.info(f"{self._name}: BlueZ reports device connected — scheduling HID reconnect")
                     asyncio.get_event_loop().call_later(1.0, self._try_reconnect_if_still_offline)
+            elif changed == "RSSI":
+                # RSSI property appears when device is nearby and advertising
+                if not self.is_alive and not self._stop_event:
+                    logging.info(f"{self._name}: Device detected nearby (RSSI: {variant.value}) — scheduling HID reconnect")
+                    asyncio.get_event_loop().call_later(2.0, self._try_reconnect_if_still_offline)
 
     def _try_reconnect_if_still_offline(self):
-        if self._is_bluez_connected and not self.is_alive and not self._stop_event:
-            logging.info(f"{self._name}: Attempting outgoing HID reconnect")
-            self.connect()
+        # Try to reconnect if device is BlueZ-connected OR detected nearby, and not already connected
+        if not self.is_alive and not self._stop_event:
+            if self._is_bluez_connected:
+                logging.info(f"{self._name}: Attempting outgoing HID reconnect (BlueZ connected)")
+                self.connect()
+            else:
+                # Device detected nearby but not BlueZ connected yet - try anyway
+                logging.info(f"{self._name}: Attempting outgoing HID reconnect (device nearby)")
+                self.connect()
 
     async def _run(self):
         if self._stop_event: return
