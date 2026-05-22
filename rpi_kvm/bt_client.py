@@ -43,6 +43,7 @@ class BtClient(object):
         self._stop_event = False
         self._is_connected = False
         self._is_bluez_connected = True
+        self._services_resolved = False
         self._control_socket = None
         self._interrupt_socket = None
         self._loop = asyncio.get_event_loop()
@@ -153,7 +154,9 @@ class BtClient(object):
                 logging.debug(f"{self._address}: Name resolves to {self._name}")
                 self._bluez_props.on_properties_changed(self._on_properties_changed)
                 self._is_bluez_connected = await self._bluez_itf.get_connected()
+                self._services_resolved = await self._bluez_itf.get_services_resolved()
                 logging.debug(f"{self._address}: Initial Connected state: {self._is_bluez_connected}")
+                logging.debug(f"{self._address}: Initial ServicesResolved state: {self._services_resolved}")
             except dbus_next.DBusError:
                 logging.warning(f"{self._address}: D-Bus bluez object available - reconnecting...")
                 await asyncio.sleep(5)
@@ -163,25 +166,21 @@ class BtClient(object):
             logging.debug(f'{self._name}: D-Bus bluez property changed: {changed} - {variant.value}')
             if changed == "Connected":
                 self._is_bluez_connected = variant.value
+            elif changed == "ServicesResolved":
+                self._services_resolved = variant.value
+                # ServicesResolved=True is the proper signal that device is ready for HID connection
                 if variant.value and not self.is_alive and not self._stop_event:
-                    logging.info(f"{self._name}: BlueZ reports device connected — scheduling HID reconnect")
-                    asyncio.get_event_loop().call_later(1.0, self._try_reconnect_if_still_offline)
+                    logging.info(f"{self._name}: Services resolved — initiating HID reconnect")
+                    self._try_reconnect_if_still_offline()
             elif changed == "RSSI":
-                # RSSI property appears when device is nearby and advertising
-                if not self.is_alive and not self._stop_event:
-                    logging.info(f"{self._name}: Device detected nearby (RSSI: {variant.value}) — scheduling HID reconnect")
-                    asyncio.get_event_loop().call_later(2.0, self._try_reconnect_if_still_offline)
+                # RSSI indicates device is nearby - log for debugging
+                logging.debug(f"{self._name}: Device detected nearby (RSSI: {variant.value})")
 
     def _try_reconnect_if_still_offline(self):
-        # Try to reconnect if device is BlueZ-connected OR detected nearby, and not already connected
-        if not self.is_alive and not self._stop_event:
-            if self._is_bluez_connected:
-                logging.info(f"{self._name}: Attempting outgoing HID reconnect (BlueZ connected)")
-                self.connect()
-            else:
-                # Device detected nearby but not BlueZ connected yet - try anyway
-                logging.info(f"{self._name}: Attempting outgoing HID reconnect (device nearby)")
-                self.connect()
+        # Attempt reconnect if services are resolved and device is not already connected
+        if self._services_resolved and not self.is_alive and not self._stop_event:
+            logging.info(f"{self._name}: Attempting outgoing HID reconnect")
+            self.connect()
 
     async def _run(self):
         if self._stop_event: return
@@ -209,8 +208,8 @@ class BtClient(object):
         self._disconnect()
         if self._on_disconnect_cb:
             self._on_disconnect_cb()
-        if self._is_bluez_connected and not self._stop_event:
-            asyncio.get_event_loop().call_later(5.0, self._try_reconnect_if_still_offline)
+        # If device is still available, ServicesResolved signal will trigger reconnect automatically
+        # No need for hardcoded delay - rely on BlueZ signals
 
     def _enshure_bt_master(self):
         if not self._bt_master_task or self._bt_master_task.done():
