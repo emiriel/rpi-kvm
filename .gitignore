@@ -3,6 +3,8 @@ conf/bluetooth.service.bak
 conf/rpi-kvm-settings.json
 conf/rpi-kvm-client-order.json
 
+# Vagrant
+.vagrant/
 
 # dependencies
 web/node_modules
