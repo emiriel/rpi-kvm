@@ -233,6 +233,7 @@ class MouseHandler:
             y_byte = y_chunk & 0xFF if y_chunk >= 0 else (256 + y_chunk) & 0xFF
 
             telegram = [0xA1, 2, buttons_byte, x_byte, y_byte, v_byte, h_byte]
+            logging.debug(f"Mouse: sending telegram buttons={buttons_byte:02x} x={x_byte:02x} y={y_byte:02x} v={v_byte:02x} h={h_byte:02x}")
             self._bt_server.send(telegram)
 
             # Subtract sent chunk from remaining movement
