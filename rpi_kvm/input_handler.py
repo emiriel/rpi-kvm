@@ -239,10 +239,9 @@ class MouseHandler:
             x_pos -= x_chunk
             y_pos -= y_chunk
 
-            # Only send wheel/buttons on first chunk
+            # Only send wheel on first chunk (buttons must persist)
             v_byte = 0
             h_byte = 0
-            buttons_byte = 0  # Don't repeat button state in subsequent chunks
 
 
 class InputManager:
