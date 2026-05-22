@@ -224,7 +224,11 @@ class MouseHandler:
         v_byte = UsbHidDecoder.enshure_byte_size(v_wheel)
         h_byte = UsbHidDecoder.enshure_byte_size(h_wheel)
 
-        while abs(x_pos) > 0 or abs(y_pos) > 0:
+        # Always send at least once (for clicks without movement)
+        first_chunk = True
+        while first_chunk or abs(x_pos) > 0 or abs(y_pos) > 0:
+            first_chunk = False
+
             # Clamp to signed byte range
             x_chunk = max(-127, min(127, x_pos))
             y_chunk = max(-127, min(127, y_pos))
