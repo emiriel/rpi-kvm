@@ -4,7 +4,7 @@ from dbus_next.aio import MessageBus
 import socket
 import enum
 import logging
-import common
+from . import common
 
 class BtConnectionRole(enum.Enum):
     Master = 1
