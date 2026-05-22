@@ -44,7 +44,14 @@ Vagrant.configure("2") do |config|
     cd /vagrant
 
     # Install Python dependencies
-    pip3 install --break-system-packages \
+    # Use pip3 install without --break-system-packages for Ubuntu 22.04
+    pip3 install \
+      dbus-next \
+      pytest \
+      pytest-asyncio \
+      pytest-cov \
+      flask || \
+    pip3 install --user \
       dbus-next \
       pytest \
       pytest-asyncio \
