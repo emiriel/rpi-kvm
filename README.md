@@ -49,9 +49,21 @@ To see detailed bluetooth client information go the RPI-K(V)M web interface: [ht
 
 #### c) Connect a HD44780 LCD display
 
-Follow [this](/docu/lcd.md) wiring guide to display the bluetooth clients on a LCD display.
+Follow [this](/docs/hardware/lcd.md) wiring guide to display the bluetooth clients on a LCD display.
 
 ![Animated lcd display bluetooth client switch](/.github/Screenshots/lcd.gif)
+
+## Documentation
+
+📚 **[Complete Documentation →](docs/README.md)**
+
+Quick links:
+- [System Architecture](docs/architecture/system-overview.md)
+- [Bluetooth Auto-Connection](docs/bluetooth/bluetooth-auto-connection.md)
+- [Testing Setup](docs/development/testing-setup.md)
+- [Troubleshooting](docs/troubleshooting/common-issues.md)
+- [Contributing](docs/development/contributing.md)
+- [Roadmap & Next Steps](docs/project/next-steps.md)
 
 ## Technologies / Attributions
 
