@@ -113,7 +113,7 @@ class EventMouse:
         self._h_wheel = 0
         self._have_buttons_changed = False
         self._last_syn_event_time = 0
-        self._update_rate = 20 / 1000
+        self._update_rate = 1 / 1000  # 1ms = 1000Hz polling rate
 
     @property
     def is_alive(self):
