@@ -187,11 +187,15 @@ class EventMouse:
             elif event.code == 1:
                 self._y_pos += event.value
             elif event.code == 8:
+                # Vertical wheel - send immediately to avoid lag
                 logging.debug(f"{self._idev.path}: V-Wheel movement: {event.value}")
                 self._v_wheel += event.value
+                self._have_buttons_changed = True  # Force immediate send
             elif event.code == 6:
+                # Horizontal wheel - send immediately to avoid lag
                 logging.debug(f"{self._idev.path}: H-Wheel movement: {event.value}")
                 self._h_wheel -= event.value
+                self._have_buttons_changed = True  # Force immediate send
 
 
 class MouseHandler:
