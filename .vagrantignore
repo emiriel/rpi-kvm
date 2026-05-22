@@ -1,0 +1,6 @@
+.git/
+.vagrant/
+*.pyc
+__pycache__/
+*.log
+.vscode/
