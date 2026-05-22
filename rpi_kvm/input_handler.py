@@ -214,13 +214,35 @@ class MouseHandler:
             return
 
         buttons_byte = UsbHidDecoder.convert_modifier_bit_mask_to_int(common_buttons)
-        x_byte = UsbHidDecoder.enshure_byte_size(x_pos)
-        y_byte = UsbHidDecoder.enshure_byte_size(y_pos)
+
+        # Log large movements before chunking
+        if abs(x_pos) > 127 or abs(y_pos) > 127:
+            logging.debug(f"Mouse: chunking large movement x={x_pos} y={y_pos}")
+
+        # Chunk large movements into multiple reports (signed byte range: -127 to 127)
+        # Send wheel only on first chunk
         v_byte = UsbHidDecoder.enshure_byte_size(v_wheel)
         h_byte = UsbHidDecoder.enshure_byte_size(h_wheel)
 
-        telegram = [0xA1, 2, buttons_byte, x_byte, y_byte, v_byte, h_byte]
-        self._bt_server.send(telegram)  # queue.put_nowait() — never blocks
+        while abs(x_pos) > 0 or abs(y_pos) > 0:
+            # Clamp to signed byte range
+            x_chunk = max(-127, min(127, x_pos))
+            y_chunk = max(-127, min(127, y_pos))
+
+            x_byte = x_chunk & 0xFF if x_chunk >= 0 else (256 + x_chunk) & 0xFF
+            y_byte = y_chunk & 0xFF if y_chunk >= 0 else (256 + y_chunk) & 0xFF
+
+            telegram = [0xA1, 2, buttons_byte, x_byte, y_byte, v_byte, h_byte]
+            self._bt_server.send(telegram)
+
+            # Subtract sent chunk from remaining movement
+            x_pos -= x_chunk
+            y_pos -= y_chunk
+
+            # Only send wheel/buttons on first chunk
+            v_byte = 0
+            h_byte = 0
+            buttons_byte = 0  # Don't repeat button state in subsequent chunks
 
 
 class InputManager:
