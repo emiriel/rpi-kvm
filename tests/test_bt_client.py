@@ -61,7 +61,34 @@ class TestBtClientPropertyChanges:
 
     def test_services_resolved_property_change(self, property_variant, mock_logging):
         """Test ServicesResolved property change tracking"""
-        pytest.skip("Feature not yet implemented - will add with ServicesResolved changes")
+        client = BtClient("AA:BB:CC:DD:EE:FF")
+        client._name = "TestHost"
+        client._task = None  # Not alive, so reconnect would trigger
+
+        # Initially False (set in __init__)
+        assert client._services_resolved == False
+
+        # Mock connect to avoid asyncio issues in sync test
+        with patch.object(client, 'connect'):
+            # Simulate ServicesResolved = True
+            variant = property_variant(True)
+            client._on_properties_changed(
+                "org.bluez.Device1",
+                {"ServicesResolved": variant},
+                []
+            )
+
+            assert client._services_resolved == True
+
+            # Simulate ServicesResolved = False
+            variant = property_variant(False)
+            client._on_properties_changed(
+                "org.bluez.Device1",
+                {"ServicesResolved": variant},
+                []
+            )
+
+            assert client._services_resolved == False
 
     def test_rssi_property_logged(self, property_variant, mock_logging, caplog):
         """Test RSSI property change is logged"""
@@ -124,7 +151,21 @@ class TestBtClientReconnectLogic:
 
     def test_reconnect_triggered_when_services_resolved(self, property_variant, mock_logging):
         """ServicesResolved=True should trigger reconnect if offline"""
-        pytest.skip("Feature not yet implemented - will add with ServicesResolved changes")
+        client = BtClient("AA:BB:CC:DD:EE:FF")
+        client._name = "TestHost"
+        client._stop_event = False
+        client._task = None  # is_alive = False
+
+        with patch.object(client, 'connect') as mock_connect:
+            variant = property_variant(True)
+            client._on_properties_changed(
+                "org.bluez.Device1",
+                {"ServicesResolved": variant},
+                []
+            )
+
+            # Should trigger reconnect
+            mock_connect.assert_called_once()
 
 
 class TestBtClientConnectionRole:
