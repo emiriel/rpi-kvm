@@ -52,13 +52,22 @@ Vagrant.configure("2") do |config|
       flask
 
     echo "=== Starting D-Bus system bus ==="
-    service dbus start
+    service dbus start || systemctl start dbus
 
     echo "=== Starting BlueZ ==="
-    service bluetooth start
+    service bluetooth start || systemctl start bluetooth
 
+    # Wait for services to be ready
+    sleep 2
+
+    echo "=== Checking service status ==="
+    systemctl is-active dbus && echo "D-Bus: OK" || echo "D-Bus: FAILED"
+    systemctl is-active bluetooth && echo "BlueZ: OK" || echo "BlueZ: FAILED"
+
+    echo ""
     echo "=== VM provisioning complete ==="
     echo "Run 'vagrant ssh' to access the VM"
-    echo "Run tests with: cd /vagrant && python3 -m pytest tests/"
+    echo "Run unit tests: cd /vagrant && python3 -m pytest tests/test_bt_client.py -v"
+    echo "Run integration tests: cd /vagrant && python3 -m pytest tests/test_bt_integration.py -v -m integration"
   SHELL
 end
