@@ -22,3 +22,4 @@ web/coverage
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+deploy_to_rpi.sh

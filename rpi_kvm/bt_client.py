@@ -4,7 +4,10 @@ from dbus_next.aio import MessageBus
 import socket
 import enum
 import logging
-from . import common
+try:
+    from . import common
+except ImportError:
+    import common
 
 class BtConnectionRole(enum.Enum):
     Master = 1
