@@ -157,10 +157,7 @@ class EventMouse:
 
     async def _handle_event(self, event):
         if event.type == ecodes.EV_SYN:
-            current_time = time.monotonic()
-            if current_time - self._last_syn_event_time < self._update_rate and not self._have_buttons_changed:
-                return
-            self._last_syn_event_time = current_time
+            # Send every SYN event immediately for best responsiveness
             if self.send_state_cb:
                 await self.send_state_cb(self._buttons, self._x_pos, self._y_pos, self._v_wheel, self._h_wheel)
             self._x_pos = 0
