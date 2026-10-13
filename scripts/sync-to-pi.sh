@@ -33,7 +33,6 @@ RSYNC_EXCLUDES=(
     --exclude 'conf/rpi-kvm-settings.json'
     --exclude 'conf/rpi-kvm-client-order.json'
     --exclude 'conf/bluetooth.service.bak'
-    --exclude 'deployment/'
 )
 
 echo "=== Staging working tree on $HOST:$STAGE_DIR ==="

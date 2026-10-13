@@ -51,17 +51,22 @@ and the ssh transport (`scripts/sync-to-pi.sh`):
 - **ssh (from the dev machine, no GitHub)**: `./scripts/install-from-ssh.sh`
   syncs the working tree to the Pi and runs the installer remotely.
   `./deploy_to_rpi.sh` (gitignored, local) does the sync plus service restart
-  for redeploying after each change.
+  for redeploying after each change. This is the **debug** deployment tier.
 - **git (on the Pi)**: after a clone/pull, `sudo ./rpi-kvm.sh install` runs
   `scripts/install-from-git.sh`, which aborts if the tree has modifications
   beyond the `__INSTALL_DIR__` placeholder substitutions.
+- **PROD** is the webhook tier: pushing to `origin/main` triggers
+  `deployment/webhook_receiver.py` on the Pi, which runs
+  `deployment/deploy.sh` (git reset to `origin/main` + service restart).
+  See `docs/deployment/automated-deployment.md`. Debug deploys diverge the
+  Pi tree from `main`; the next PROD push resets it.
 
 `RPI_KVM_HOST` (default `rpi-kvm.home`) and `RPI_KVM_REMOTE_DIR`
-(default `/root/tools/rpi-kvm`) configure both. The Pi's tree carries no
-`.git` anymore: the ssh sync is the source of truth there, and the former
-divergent Pi-side history is preserved locally under `refs/remotes/pi/main`.
-`deployment/` on the Pi is Pi-local work (webhook receiver) absent from this
-repo; sync excludes it — import it before removing the exclude.
+(default `/root/tools/rpi-kvm`) configure both. The Pi's tree is a git
+checkout of `origin/main` for the PROD webhook flow; in debug the ssh sync
+overwrites its files directly, and the next PROD push resets it to
+`origin/main`. The former divergent Pi-side history is preserved locally
+under `refs/remotes/pi/main`.
 
 ## SSH access
 

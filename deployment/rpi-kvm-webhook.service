@@ -1,0 +1,22 @@
+[Unit]
+Description=RPi KVM Webhook Receiver
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/tools/rpi-kvm/deployment
+Environment="WEBHOOK_SECRET=YOUR_SECRET_HERE"
+Environment="PROJECT_PATH=/root/tools/rpi-kvm"
+Environment="DEPLOY_SCRIPT=/root/tools/rpi-kvm/deployment/deploy.sh"
+Environment="DEPLOY_BRANCH=main"
+ExecStart=/usr/bin/python3 /root/tools/rpi-kvm/deployment/webhook_receiver.py
+Restart=always
+RestartSec=10
+
+# Security
+NoNewPrivileges=false
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
