@@ -333,6 +333,40 @@ If the device is still there and connected to BlueZ, the `ServicesResolved` prop
 
 ---
 
+## The Safety Net: Per-Client Retry Loop
+
+The `ServicesResolved` signal is the fast path, but it is purely reactive: it only
+fires when BlueZ itself re-establishes the base connection to the host. If a
+host boots or wakes up and does *not* page the rpi-kvm (OS policies differ), no
+signal ever arrives and the connection would never be re-established.
+
+A real Bluetooth keyboard solves this by simply **retrying its host in a loop**
+until it answers. rpi-kvm does the same: every `BtClient` owns an independent
+background retry loop (`_reconnect_loop` in `rpi_kvm/bt_client.py`) that
+attempts an outgoing HID reconnect every `BT_RECONNECT_RETRY_INTERVAL` seconds
+(default 5) while the client is offline.
+
+Key properties:
+
+- **Per-client**: each host has its own loop. Connecting successfully to one
+  host never stops the retries for the others — otherwise switching between
+  hosts would break as soon as one of them is online.
+- **Respects manual disconnect**: the loop pauses while `_stop_event` is set
+  (web UI "Disconnect"), and restarts on the next manual `connect()`.
+- **Bounded attempts**: outgoing L2CAP connects carry a socket timeout
+  (`BT_CONNECT_TIMEOUT`), so one attempt to a dead host cannot stall the loop.
+- **Quiet by design**: failed attempts log at DEBUG level; only established
+  connections and real terminations log at INFO, keeping the journal readable.
+
+Together the two mechanisms complement each other:
+
+```
+Fast path:  host pages rpi-kvm → BlueZ ServicesResolved=True → immediate HID reconnect
+Safety net: host silent      → retry loop keeps knocking every 5s until it answers
+```
+
+---
+
 ## Key Takeaways
 
 ### Bluetooth Connection Lifecycle

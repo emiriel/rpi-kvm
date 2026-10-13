@@ -247,12 +247,12 @@ class TestBtClientLifecycle:
     """Test connection lifecycle"""
 
     def test_connect_creates_task(self, mock_logging):
-        """Test connect() creates async task"""
+        """Test connect() creates async tasks (run + reconnect loop)"""
         client = BtClient("AA:BB:CC:DD:EE:FF")
 
         with patch('asyncio.create_task') as mock_create_task:
             client.connect()
-            mock_create_task.assert_called_once()
+            assert mock_create_task.call_count == 2
 
     def test_stop_sets_stop_event(self, mock_logging):
         """Test stop() sets stop flag"""
@@ -282,3 +282,97 @@ class TestBtClientLifecycle:
         assert client._is_connected == False
         assert client._control_socket is None
         assert client._interrupt_socket is None
+
+
+class TestBtClientRetryLoop:
+    """Test the per-client reconnect loop (keyboard-like retry behaviour)"""
+
+    def _make_client(self):
+        client = BtClient("AA:BB:CC:DD:EE:FF")
+        client._name = "TestHost"
+        return client
+
+    async def test_loop_retries_offline_client(self, monkeypatch, mock_logging):
+        """Loop must keep calling connect() while the host stays offline"""
+        monkeypatch.setattr(BtClient, "BT_RECONNECT_RETRY_INTERVAL", 0.01)
+        client = self._make_client()
+
+        with patch.object(client, "connect") as mock_connect:
+            client._ensure_reconnect_loop()
+            await asyncio.sleep(0.05)
+            assert mock_connect.call_count >= 2
+
+            client.stop()
+            await asyncio.sleep(0.05)
+            count_after_stop = mock_connect.call_count
+            await asyncio.sleep(0.05)
+            assert mock_connect.call_count == count_after_stop
+
+    async def test_loop_does_not_retry_when_alive(self, monkeypatch, mock_logging):
+        """Loop must not call connect() while the client task is running"""
+        monkeypatch.setattr(BtClient, "BT_RECONNECT_RETRY_INTERVAL", 0.01)
+        client = self._make_client()
+        client._task = AsyncMock()
+        client._task.done = Mock(return_value=False)  # is_alive = True
+
+        with patch.object(client, "connect") as mock_connect:
+            client._ensure_reconnect_loop()
+            await asyncio.sleep(0.05)
+            mock_connect.assert_not_called()
+
+        client.stop()
+
+    async def test_loop_independent_per_client(self, monkeypatch, mock_logging):
+        """A connected client must not stop another client's retry loop"""
+        monkeypatch.setattr(BtClient, "BT_RECONNECT_RETRY_INTERVAL", 0.01)
+        online = self._make_client()
+        online._task = AsyncMock()
+        online._task.done = Mock(return_value=False)
+        offline = self._make_client()
+
+        with patch.object(online, "connect") as online_connect, \
+             patch.object(offline, "connect") as offline_connect:
+            online._ensure_reconnect_loop()
+            offline._ensure_reconnect_loop()
+            await asyncio.sleep(0.05)
+            online_connect.assert_not_called()
+            assert offline_connect.call_count >= 2
+
+        online.stop()
+        offline.stop()
+
+    async def test_connect_starts_loop(self, monkeypatch, mock_logging):
+        """connect() must ensure the retry loop is running"""
+        client = self._make_client()
+        with patch.object(client, "_run", new_callable=AsyncMock):
+            client.connect()
+            assert client._reconnect_task is not None
+            assert not client._reconnect_task.done()
+            client.stop()
+
+    async def test_stop_cancels_loop(self, monkeypatch, mock_logging):
+        """stop() must cancel the retry loop task"""
+        monkeypatch.setattr(BtClient, "BT_RECONNECT_RETRY_INTERVAL", 0.01)
+        client = self._make_client()
+        with patch.object(client, "connect"):
+            client._ensure_reconnect_loop()
+            loop_task = client._reconnect_task
+            client.stop()
+            await asyncio.sleep(0.01)
+            assert loop_task.done()
+
+    async def test_loop_restarts_after_manual_reconnect(self, monkeypatch, mock_logging):
+        """After a manual stop(), a manual connect() must restart the loop"""
+        monkeypatch.setattr(BtClient, "BT_RECONNECT_RETRY_INTERVAL", 0.01)
+        client = self._make_client()
+        with patch.object(client, "_run", new_callable=AsyncMock):
+            client.connect()
+            first_loop = client._reconnect_task
+            client.stop()
+            await asyncio.sleep(0.01)
+            assert first_loop.done()
+
+            client.connect()
+            assert client._reconnect_task is not first_loop
+            assert not client._reconnect_task.done()
+            client.stop()

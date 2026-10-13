@@ -17,6 +17,12 @@ class BtConnectionRole(enum.Enum):
 class BtClient(object):
     BT_CONTROL_PORT = 17  # Service port - control port specified in the bluetooth HID specification
     BT_INTERRUPT_PORT = 19  # Service port - interrupt port specified in the bluetooth HID specification
+    # Retry interval for the outgoing reconnect loop. A real Bluetooth keyboard
+    # retries its host in a loop until it answers; each client runs its own loop,
+    # so online hosts never stop the retrying for offline ones.
+    BT_RECONNECT_RETRY_INTERVAL = 5.0  # seconds
+    # Upper bound for one outgoing connection attempt to an offline host.
+    BT_CONNECT_TIMEOUT = 10.0  # seconds
 
     @staticmethod
     async def create_via_address(address):
@@ -52,6 +58,7 @@ class BtClient(object):
         self._loop = asyncio.get_event_loop()
         self._message_queue = asyncio.Queue()
         self._task = None
+        self._reconnect_task = None
         self._bt_master_task = None
         self._bt_check_alive_task = None
         self._on_disconnect_cb = None
@@ -91,6 +98,7 @@ class BtClient(object):
         if not self._task or self._task.done():
             self._stop_event = False
             self._task = asyncio.create_task(self._run())
+        self._ensure_reconnect_loop()
 
     def accept_connection(self, control_socket, interrupt_socket):
         if not self._task or self._task.done():
@@ -98,6 +106,24 @@ class BtClient(object):
             self._interrupt_socket = interrupt_socket
             self._stop_event = False
             self._task = asyncio.create_task(self._run())
+        self._ensure_reconnect_loop()
+
+    def _ensure_reconnect_loop(self):
+        if not self._reconnect_task or self._reconnect_task.done():
+            self._reconnect_task = asyncio.create_task(self._reconnect_loop())
+
+    async def _reconnect_loop(self):
+        # A real Bluetooth keyboard loops over its host until it answers.
+        # Each client retries independently: connecting successfully to one
+        # host does not stop the retries for the others.
+        while not self._stop_event:
+            await asyncio.sleep(BtClient.BT_RECONNECT_RETRY_INTERVAL)
+            if self._stop_event:
+                break
+            if not self.is_alive and not self._stop_event:
+                logging.debug(f"{self._name}: Retry loop: host offline - attempting reconnect")
+                self.connect()
+        logging.debug(f"{self._name}: Retry loop stopped")
 
     async def _establish_socket_connection(self):
         if self._control_socket and self._interrupt_socket:
@@ -108,15 +134,20 @@ class BtClient(object):
             try:
                 self._control_socket = socket.socket(
                     socket.AF_BLUETOOTH, socket.SOCK_SEQPACKET, socket.BTPROTO_L2CAP)
+                self._control_socket.settimeout(BtClient.BT_CONNECT_TIMEOUT)
                 await self._loop.run_in_executor(None, lambda: self._control_socket.connect((self.address, self.BT_CONTROL_PORT)))
                 self._control_socket.setblocking(False)
                 self._interrupt_socket = socket.socket(
                     socket.AF_BLUETOOTH, socket.SOCK_SEQPACKET, socket.BTPROTO_L2CAP)
+                self._interrupt_socket.settimeout(BtClient.BT_CONNECT_TIMEOUT)
                 await self._loop.run_in_executor(None, lambda: self._interrupt_socket.connect((self.address, self.BT_INTERRUPT_PORT)))
                 self._interrupt_socket.setblocking(False)
                 self._handle_state_at_successfull_connection()
             except Exception as e:
-                logging.error(f"{self.name}: Exception during connect: {e}")
+                # The retry loop attempts reconnects at a regular interval, so a
+                # failure here is expected while the host is offline - keep the
+                # journal quiet and log success loudly instead.
+                logging.debug(f"{self.name}: Connect attempt to {self._address} failed: {e}")
                 self._disconnect()
         if self._is_connected:
             self._enshure_bt_master()
@@ -137,6 +168,8 @@ class BtClient(object):
 
     def stop(self):
         self._stop_event = True
+        if self._reconnect_task and not self._reconnect_task.done():
+            self._reconnect_task.cancel()
 
     async def join(self):
         await self._task
@@ -188,7 +221,8 @@ class BtClient(object):
     async def _run(self):
         if self._stop_event: return
         await self._establish_socket_connection()
-        if self._is_connected:
+        was_connected = self._is_connected
+        if was_connected:
             logging.info(f"\033[0;32m{self.name}: Connection established ({self.address})\033[0m")
         while self._is_connected and not self._stop_event:
             message = ""
@@ -207,12 +241,14 @@ class BtClient(object):
                 logging.error(f"{self._name}: Message could not be sed: {message}")
                 raise
 
-        logging.info(f"\033[0;31m{self.name}: Connection terminated - client closed ({self.address})\033[0m")
+        if was_connected:
+            logging.info(f"\033[0;31m{self.name}: Connection terminated - client closed ({self.address})\033[0m")
         self._disconnect()
         if self._on_disconnect_cb:
             self._on_disconnect_cb()
-        # If device is still available, ServicesResolved signal will trigger reconnect automatically
-        # No need for hardcoded delay - rely on BlueZ signals
+        # Offline hosts are retried by the per-client reconnect loop
+        # (_reconnect_loop) at a regular interval, like a real Bluetooth
+        # keyboard does with its host.
 
     def _enshure_bt_master(self):
         if not self._bt_master_task or self._bt_master_task.done():
