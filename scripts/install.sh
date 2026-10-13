@@ -79,4 +79,3 @@ echo "Start RPI-KVM service"
 sudo systemctl start rpi-kvm.target
 echo "--- Configuration Step Done ------"
 echo "### RPI-KVM Install Done #########"
-git reset --hard

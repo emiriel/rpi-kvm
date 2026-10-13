@@ -2,7 +2,7 @@
 
 case "$1" in
     install)
-        sudo ./scripts/install.sh
+        sudo ./scripts/install-from-git.sh
         ;;
     uninstall)
         sudo ./scripts/uninstall.sh
