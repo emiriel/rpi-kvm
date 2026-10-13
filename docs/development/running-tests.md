@@ -12,8 +12,14 @@ Mock-based tests, run anywhere:
 python3 -m pytest tests/test_bt_client.py -v
 ```
 
-**Coverage**: 16 tests covering BtClient logic
+**Coverage**: 22 tests in `test_bt_client.py` (connection lifecycle, D-Bus
+property changes, reconnect retry loop)
 **Runtime**: ~50ms
+
+> Note: run the suite from the repo root or the Vagrant VM. On hosts with
+> Python 3.11+, a few sync tests fail (`asyncio.get_event_loop()` without a
+> running loop); the Vagrant VM (Ubuntu 22.04, Python 3.10) is the reference
+> environment.
 **Requirements**: Python 3.7+, pytest
 
 ### Integration Tests (Requires BlueZ)

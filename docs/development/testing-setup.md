@@ -83,8 +83,9 @@ rpi-kvm/
 │   ├── conftest.py       # pytest fixtures
 │   ├── test_bt_client.py # BtClient unit tests
 │   └── test_integration.py # Integration tests
-└── docu/
-    └── testing-setup.md  # This file
+└── docs/
+    └── development/
+        └── testing-setup.md  # This file
 ```
 
 ## How It Works
@@ -253,4 +254,4 @@ jobs:
 3. Set up CI/CD pipeline
 4. Document test scenarios
 
-See `docu/bluetooth-auto-connection.md` for implementation details.
+See [bluetooth-auto-connection.md](../bluetooth/bluetooth-auto-connection.md) for implementation details.

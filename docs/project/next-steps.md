@@ -2,58 +2,63 @@
 
 Current development priorities and future enhancements for rpi-kvm.
 
-## Current Sprint: ServicesResolved Auto-Reconnect
+## Recently Completed
 
-### Status: In Progress
+### Auto-Reconnect (ServicesResolved + retry loop)
 
-**Goal**: Fix auto-reconnect reliability by using proper BlueZ signals instead of hardcoded delays.
+**Goal**: Reconnect hosts automatically when they boot, wake up or come back
+in range.
 
-**Tasks**:
-- [x] Stash current changes
-- [x] Setup Vagrant test environment
-- [x] Create test infrastructure
-- [x] Refactor documentation
-- [ ] Write unit tests for BtClient
-- [ ] Write integration tests
-- [ ] Apply ServicesResolved changes
-- [ ] Test on real hardware
-- [ ] Deploy to production
+**Delivered**:
+- [x] Vagrant test environment with virtual Bluetooth
+- [x] Unit tests for BtClient (mocked D-Bus) + integration test framework
+- [x] Fast path: react to the BlueZ `ServicesResolved` signal, no timers
+- [x] Safety net: per-client retry loop every 5s, like a real Bluetooth
+      keyboard — independent per host, so one online host never stops the
+      retries of offline ones (see
+      [bluetooth-auto-connection.md](../bluetooth/bluetooth-auto-connection.md))
+- [x] Tested on real hardware (two laptops) and deployed
 
-**Expected Benefits**:
-- Faster reconnection (no arbitrary delays)
-- More reliable (event-driven vs polling)
-- Works across different devices/speeds
-- Cleaner codebase
+### SSH-Based Install & Deploy
 
-### Technical Details
-
-See [bluetooth-auto-connection.md](../bluetooth/bluetooth-auto-connection.md) for implementation details.
-
-**Key Change**: Replace hardcoded timers with D-Bus signal monitoring:
-- Monitor `ServicesResolved` property
-- React immediately when host ready
-- Remove `call_later()` delays
+- [x] Install from the dev machine over ssh, without GitHub
+      (`scripts/install-from-ssh.sh`, shared transport in
+      `scripts/sync-to-pi.sh`)
+- [x] Deploy on every change (`deploy_to_rpi.sh`: sync + service restart)
+- [x] Git installer hardened: aborts if the working tree has changes beyond
+      install-time placeholder substitutions
 
 ---
 
-## Short-Term Improvements (Next 1-2 Months)
+## Short-Term Improvements
 
-### 1. Testing Infrastructure ⚡ High Priority
+### 1. Bluetooth Identity Cleanup
 
-**Current State**: No automated tests
+**Issue**: Hosts see the Pi as an audio-capable device (they offer to use it
+as a speaker/headset).
+
+**Root Cause**: Only the BlueZ `input` plugin is disabled
+(`conf/bluetooth.service`); the audio/network plugins still register their
+SDP records (A2DP, AVRCP, HSP/HFP, PAN...).
+
+**Proposed**: extend `--noplugin` to cover the unused profiles, keeping
+`piscan` active so new hosts can still pair. Verify with `sdptool browse
+local` before/after.
+
+### 2. Testing Infrastructure
+
+**Current State**: Mock-based unit tests (BtClient, retry loop) + BlueZ/D-Bus
+integration tests; suite runs in the Vagrant VM via `./run_tests.sh`.
 
 **Goals**:
-- [ ] Mock-based unit tests for core logic
-- [ ] Vagrant VM with virtual Bluetooth
 - [ ] CI/CD pipeline (GitHub Actions)
 - [ ] Test coverage >70%
 
-**Benefits**:
-- Catch regressions early
-- Faster development cycle
-- Contributor confidence
+**Known Issue**: 5 sync tests fail outside the Vagrant VM on Python 3.11
+(`asyncio.get_event_loop()` without a running loop); the Vagrant VM
+(Ubuntu 22.04, Python 3.10) is the reference environment.
 
-### 2. Mouse Performance Optimization
+### 3. Mouse Performance Optimization
 
 **Issue**: Mouse movement can be laggy (see `troubleshooting/04-mouse-performance.md`)
 
@@ -273,4 +278,4 @@ Follow project progress:
 
 ---
 
-Last updated: 2026-05-22
+Last updated: 2026-10-13

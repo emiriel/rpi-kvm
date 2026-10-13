@@ -10,7 +10,8 @@ This document explains how Bluetooth connections work in the rpi-kvm project, pa
 4. [The Auto-Connection Problem](#the-auto-connection-problem)
 5. [The Solution: ServicesResolved Signal](#the-solution-servicesresolved-signal)
 6. [Implementation Details](#implementation-details)
-7. [Key Takeaways](#key-takeaways)
+7. [The Safety Net: Per-Client Retry Loop](#the-safety-net-per-client-retry-loop)
+8. [Key Takeaways](#key-takeaways)
 
 ---
 
@@ -403,4 +404,4 @@ For HID connections, wait for:
 - [BlueZ D-Bus API Documentation](https://git.kernel.org/pub/scm/bluetooth/bluez.git/tree/doc)
 - [Service Discovery Protocol (SDP)](https://www.bluetooth.com/specifications/assigned-numbers/service-discovery/)
 - [HID Profile Specification](http://www.yts.rdy.jp/pic/GB002/HID_SPEC_V10.pdf)
-- See also: `docu/reading.md` for more Bluetooth resources
+- See also: [references.md](references.md) for more Bluetooth resources
