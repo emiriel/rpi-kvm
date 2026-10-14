@@ -36,6 +36,7 @@ Complete documentation for the Raspberry Pi KVM (Keyboard-Video-Mouse) over Blue
 - [Auto-Switch Problems](troubleshooting/02-autoswitch.md)
 - [Offline Host Switching](troubleshooting/03-pihat-switches-to-offline-hosts.md)
 - [Mouse Performance](troubleshooting/04-mouse-performance.md)
+- [Diagnosing Mouse Latency & Stutter](troubleshooting/05-diagnosing-mouse-latency.md)
 
 ### Project Management
 - [Next Steps & Roadmap](project/next-steps.md)
