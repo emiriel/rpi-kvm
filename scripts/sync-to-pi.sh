@@ -44,8 +44,10 @@ tar czf - "${TAR_EXCLUDES[@]}" ./ \
 | ssh "${SSH_OPTS[@]}" "$HOST" "tar xzf - -C $STAGE_DIR"
 
 echo "=== Syncing $STAGE_DIR into $REMOTE_DIR (rsync on the Pi) ==="
+# -rlptD = -a without -o/-g: do not preserve staging ownership, so the
+# remote tree keeps a single owner (git on the Pi refuses mixed ownership).
 ssh "${SSH_OPTS[@]}" "$HOST" \
-    "sudo rsync -a --delete ${RSYNC_EXCLUDES[*]} $STAGE_DIR/ $REMOTE_DIR/"
+    "sudo rsync -rlptD --delete ${RSYNC_EXCLUDES[*]} $STAGE_DIR/ $REMOTE_DIR/"
 
 echo "=== Cleaning up staging dir ==="
 ssh "${SSH_OPTS[@]}" "$HOST" "sudo rm -rf $STAGE_DIR"
