@@ -66,6 +66,7 @@ sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-web.service
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-infohub.service
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-touchphat.service
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-network-watchdog.service
+sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./systemd/rpi-kvm-autoupdate.service
 sed -i'' -e "s|__INSTALL_DIR__|"`pwd`"|g" ./rpi_kvm/web.py
 
 sudo cp ./systemd/* /etc/systemd/system/
@@ -74,9 +75,9 @@ echo "Replace legacy pi user with current user if necessary"
 sudo systemctl daemon-reload
 echo "Restart bluetooth service with the new config"
 sudo systemctl restart bluetooth
-echo "Enable network watchdog (restart network or reboot on failure)"
-sudo systemctl enable rpi-kvm-network-watchdog.timer
-sudo systemctl start rpi-kvm-network-watchdog.timer
+echo "Enable self-update (poll origin, deploy when the branch moved)"
+sudo systemctl enable rpi-kvm-autoupdate.timer
+sudo systemctl start rpi-kvm-autoupdate.timer
 echo "Enable RPI-KVM service"
 sudo systemctl enable rpi-kvm.target
 echo "Start RPI-KVM service"

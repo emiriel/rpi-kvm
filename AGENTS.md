@@ -55,11 +55,11 @@ and the ssh transport (`scripts/sync-to-pi.sh`):
 - **git (on the Pi)**: after a clone/pull, `sudo ./rpi-kvm.sh install` runs
   `scripts/install-from-git.sh`, which aborts if the tree has modifications
   beyond the `__INSTALL_DIR__` placeholder substitutions.
-- **PROD** is the webhook tier: pushing to `origin/main` triggers
-  `deployment/webhook_receiver.py` on the Pi, which runs
-  `deployment/deploy.sh` (git reset to `origin/main` + service restart).
-  See `docs/deployment/automated-deployment.md`. Debug deploys diverge the
-  Pi tree from `main`; the next PROD push resets it.
+- **PROD** is the self-update tier: `rpi-kvm-autoupdate.timer` polls
+  `origin/main` every 5 min (`scripts/autoupdate.sh`: fetch, reset, restart).
+  The Pi initiates the connection — no port forwarding, no secrets. See
+  `docs/deployment/self-update.md`. Debug deploys diverge the Pi tree from
+  `main`; the next poll resets it.
 
 `RPI_KVM_HOST` (default `rpi-kvm.home`) and `RPI_KVM_REMOTE_DIR`
 (default `/root/tools/rpi-kvm`) configure both. The Pi's tree is a git
