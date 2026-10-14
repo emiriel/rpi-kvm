@@ -6,7 +6,9 @@
 
 set -u
 
-FAILS_BEFORE_REBOOT="${NW_FAILS_BEFORE_REBOOT:-3}"
+# 5 consecutive failed checks (timer runs every 2 minutes) = ~10 minutes of
+# real outage before rebooting; a lone missed ping never reboots the Pi.
+FAILS_BEFORE_REBOOT="${NW_FAILS_BEFORE_REBOOT:-5}"
 STATE_FILE="/run/network-watchdog.state"  # tmpfs: counter resets on boot
 LOG_TAG="network-watchdog"
 
